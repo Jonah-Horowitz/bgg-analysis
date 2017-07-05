@@ -43,6 +43,9 @@ rm(ratings.filter)
 rm(small.users)
 rm(ratings.by.user)
 
+# Replace absent descriptions with the empty string.
+games$description[is.na(games$description)] <- ""
+
 # Assume that none of these games can play themselves.
 games$minPlayers[games$minPlayers==0] <- NA # 2457 games
 games$maxPlayers[games$maxPlayers==0] <- NA # 6624 games

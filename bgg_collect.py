@@ -9,7 +9,7 @@ try:
 	import requests
 except ImportError:
 	import pip
-	pip.main(["install","-q","requests"])
+	pip.main(["install","requests"])
 	import requests
 
 try:
