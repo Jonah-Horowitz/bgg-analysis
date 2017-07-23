@@ -33,20 +33,28 @@
 					"properties": {
 						"contains": { "type": "string" },
 						"regex": { "type": "string" },
-						"query": { "type": "string" }
+						"query": { "type": "string" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": [ "query" ]
+					}
 				},
 				"image": {
 					"description": "Requirements and preferences for the image of the returned games.",
 					"type": "object",
 					"properties": {
 						"require": { "type": "boolean" },
-						"prefer": { "type": "boolean" }
+						"prefer": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"oneOf": [ { "required": [ "require" ] }, { "required": [ "prefer" ] } ],
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": [ "prefer" ]
+					}
 				},
 				"publicationYear": {
 					"description": "Requirements and preferences for the publication year of returned games.",
@@ -57,10 +65,16 @@
 						"after": { "type": "integer" },
 						"includeMissing": { "type": "boolean" },
 						"prefer": { "oneOf": [ { "type": "string", "pattern": "^(new|old)$" }, { "type": "number" } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"players": {
 					"description": "Requirements and preferences on the number of players for returned games.",
@@ -72,10 +86,16 @@
 						"includeMinMissing": { "type": "boolean" },
 						"includeMaxMissing": { "type": "boolean" },
 						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 0 } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"playTime": {
 					"description": "Requirements and preferences on the length of play of returned games.",
@@ -86,10 +106,16 @@
 						"includeMinMissing": { "type": "boolean" },
 						"includeMaxMissing": { "type": "boolean" },
 						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 0 } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"minAge": {
 					"description": "Requirements and preferences on the minimum age returned games are acceptable for.",
@@ -99,10 +125,16 @@
 						"atMost": { "type": "number", "minimum": 0 },
 						"includeMissing": { "type": "boolean" },
 						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 0 } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"ratings": {
 					"description": "Requirements and preferences on the user ratings for returned games.",
@@ -113,10 +145,16 @@
 						"minRating": { "type": "number", "minimum": 1, "maximum": 10 },
 						"maxRating": { "type": "number", "minimum": 1, "maximum": 10 },
 						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 1, "maximum": 10 } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"weights": {
 					"description": "Requirements and preferences on the weights for returned games.",
@@ -127,10 +165,16 @@
 						"minWeight": { "type": "number", "minimum": 1, "maximum": 5 },
 						"maxWeight": { "type": "number", "minimum": 1, "maximum": 5 },
 						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 1, "maximum": 5 } ] },
-						"preferKnown": { "type": "boolean" }
+						"preferKnown": { "type": "boolean" },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": {
+							"anyOf": [ { "required": [ "prefer" ] }, { "required": [ "preferKnown" ] } ]
+						}
+					}
 				},
 				"expansions": {
 					"description": "Requirements and preferences on the number of expansions for returned games.",
@@ -138,10 +182,14 @@
 					"properties": {
 						"minExpansions": { "type": "integer", "minimum": 0 },
 						"maxExpansions": { "type": "integer", "minimum": 0 },
-						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 0 } ] }
+						"prefer": { "oneOf": [ { "$ref": "#/definitions/high-low" }, { "type": "number", "minimum": 0 } ] },
+						"importance": { "type": "number", "minimum": 0 }
 					},
 					"minProperties": 1,
-					"additionalProperties": false
+					"additionalProperties": false,
+					"dependencies": {
+						"importance": [ "prefer" ]
+					}
 				},
 				"category": { "$ref": "#/definitions/link-type" },
 				"mechanic": { "$ref": "#/definitions/link-type" },
@@ -152,7 +200,8 @@
 				"implementation": { "$ref": "#/definitions/link-type" },
 				"compilation": { "$ref": "#/definitions/link-type" },
 				"integration": { "$ref": "#/definitions/link-type" },
-				"ratings": { "$ref": "#/definitions/myRatings" }
+				"myRatings": { "$ref": "#/definitions/myRatings" },
+				"filename": { "type": "string" }
 			},
 			"additionalProperties": false
 		},
@@ -172,36 +221,37 @@
 				},
 				"prefer": {
 					"type": "object",
-					"description": "Those links which are preferred to be present or absent should be properties here, with value true if present, false if absent.",
+					"description": "Those links which are preferred to be present or absent should be properties here, with value positive for present, negative for absent, absolute value equal to importance.",
 					"patternProperties": {
-						"^.+$": { "type": "boolean" }
+						"^.+$": { "type": "number" }
 					},
 					"minProperties": 1,
 					"additionalProperties": false
-				}
+				},
+				"totalImportance": { "type": "number", "minimum": 0 }
 			},
 			"minProperties": 1,
-			"additionalProperties": false
+			"additionalProperties": false,
+			"dependencies": {
+				"totalImportance": [ "prefer" ]
+			}
 		},
 		"high-low": { "type": "string", "pattern": "^(high|low)$" },
 		"myRatings": {
 			"title": "My BGG Ratings",
 			"description": "Ratings the user has assigned to other BGG items.",
-			"type": "array",
-			"items": {
-				"type": "object",
-				"description": "Identification for (hopefully) a single game in the database. If the given information matches multiple games, this should have no effect on recommendations.",
-				"properties": {
-					"gameId": { "type": "integer", "minimum": 0 },
-					"name": { "type": "string" },
-					"yearPublished": { "type": "integer" },
-					"rating": { "type": "number", "minimum": 1, "maximum": 10 }
-				},
-				"oneOf": [ { "required": [ "gameId" ] }, { "required": [ "name" ] } ],
-				"required": [ "rating" ],
-				"additionalProperties": false,
-				"dependencies": {
-					"yearPublished": [ "name" ]
+			"type": "object",
+			"properties": {
+				"importance": { "type": "number", "minimum": 0 }
+			},
+			"patternProperties": {
+				"^[1-9][0-9]*$": { "type": "number", "minimum": 1, "maximum": 10 }
+			},
+			"minProperties": 1,
+			"additionalProperties": false,
+			"dependencies": {
+				"importance": {
+					"minProperties": 2
 				}
 			}
 		}

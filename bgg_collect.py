@@ -38,7 +38,8 @@ try:
 except ImportError:
 	import json
 
-_DATABASE_NAME = "boardgames.sqlite"
+from bgg_prepare import _FIRST_DATABASE as _DATABASE_NAME
+
 _CHUNK_SIZE = 100
 _SAVE_FILE = "bgg_collect_state.pickle"
 _TEMP_XML_SAVE = "temp.xml"
