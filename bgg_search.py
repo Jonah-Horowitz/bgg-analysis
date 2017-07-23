@@ -567,6 +567,7 @@ def _process_query(target=_DEFAULT_INPUT_QUERY):
 	schema = _translate_json(_QUERY_SCHEMA)
 	validate(query, schema)
 	resultfile = query.get("filename",_RESULT_FILENAME)
+	load_db()
 	df = _process_filter_query(_DB_GAMES, query)
 	df = _process_preference_query(df, query)
 	conn = sqlite3.connect(resultfile)
