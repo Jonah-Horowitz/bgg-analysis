@@ -32,10 +32,10 @@ except ImportError:
 	from multiset import FrozenMultiset
 
 try:
-	import scipy
+	import sklearn
 except ImportError:
-	pip.main(["install","scipy"])
-	import scipy
+	pip.main(["install","sklearn"])
+	import sklearn
 
 try:
 	from tqdm import tqdm, trange
@@ -62,32 +62,25 @@ warnings.filterwarnings("ignore", 'This pattern has match groups')
 # With help from http://pandas.pydata.org/pandas-docs/stable/indexing.html#evaluation-order-matters
 pd.set_option("mode.chained_assignment",None)
 
-if numpy.log2(sys.maxsize)<=32:
-	raise ImportError("Must be run on a 64-bit version of Python.")
+#if numpy.log2(sys.maxsize)<=32:
+#	raise ImportError("Must be run on a 64-bit version of Python.")
 
 from bgg_prepare import _SECOND_DATABASE as _DATABASE_NAME
 from bgg_prepare import _SVD_FILE
 
 _DB_GAMES = None
 _DB_LINKS = None
-_DB_RATINGS = None
 _QUERY_SCHEMA = "query_schema.json"
 _DEFAULT_INPUT_QUERY = "input.json"
 _RESULT_FILENAME = "query_results.sqlite"
 _DEFAULT_IMPORTANCE = { "description": 1, "image": 1, "publicationYear": 1, "players": 1, "playTime": 1, "minAge": 1, "ratings": 1, "weights": 1, "expansions": 1, "category": 1, "mechanic": 1, "family": 1, "designer": 1, "artist": 1, "publisher": 1, "implementation": 1, "myRatings": 1 }
 
-def load_db(file=_DATABASE_NAME, override_ratings = None):
+def load_db(file=_DATABASE_NAME):
 	"""Loads the given BGG database into memory for use in this module."""
-	global _DB_GAMES, _DB_LINKS, _DB_RATINGS
+	global _DB_GAMES, _DB_LINKS
 	conn = sqlite3.connect(file)
 	_DB_GAMES = pd.read_sql_query("SELECT * FROM games", conn)
 	_DB_LINKS = pd.read_sql_query("SELECT * FROM links", conn)
-	if override_ratings==None:
-		_DB_RATINGS = pd.read_sql_query("SELECT * FROM ratings", conn)
-	elif isinstance(override_ratings,str):
-		_DB_RATINGS = pd.read_sql_query("SELECT * FROM ratings", sqlite3.connect(override_ratings))
-	else:
-		_DB_RATINGS = override_ratings
 	conn.close()
 
 def _translate_json(target):
@@ -560,7 +553,7 @@ def _process_preference_query(target, query):
 	del part["sumPredictions"]
 	return part
 
-def _process_query(target=_DEFAULT_INPUT_QUERY):
+def process_query(target=_DEFAULT_INPUT_QUERY):
 	"""Processes the given query - returns a pandas data frame with the results after adding a new column with relative rankings for each result."""
 	global _QUERY_SCHEMA, _DB_GAMES, _RESULT_FILENAME
 	query = _translate_json(target)
@@ -577,4 +570,4 @@ def _process_query(target=_DEFAULT_INPUT_QUERY):
 	print("Finished computing results.")
 
 if __name__=="__main__":
-	_process_query()
+	process_query()

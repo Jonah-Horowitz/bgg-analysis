@@ -1,7 +1,14 @@
 """Cleans the BGG database."""
 
 import sqlite3
-import pandas as pd
+
+try:
+	import pandas as pd
+except ImportError:
+	import pip
+	pip.main(["install","pandas"])
+	import pandas as pd
+
 import numpy as np
 
 from bgg_prepare import _FIRST_DATABASE, _SECOND_DATABASE

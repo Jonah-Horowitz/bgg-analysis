@@ -1,0 +1,158 @@
+\documentclass{article}
+\usepackage{amssymb, longtable, hyperref, ragged2e, fancyhdr, fullpage, array}
+\usepackage[longtable]{multirow}
+\usepackage[usenames, svgnames]{xcolor}
+\usepackage[none]{hyphenat}
+
+\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
+
+\definecolor{linkcolour}{rgb}{0,0.2,0.6}
+\hypersetup{colorlinks,breaklinks,urlcolor=linkcolour,linkcolor=linkcolour}
+
+\pagestyle{fancy}
+\cfoot{Page \thepage\ of \pageref*{LastPage}}
+\rhead{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\skipline}[1][1]{\vspace*{#1\baselineskip}}
+
+\begin{document}
+
+\begin{center}{\Huge\bf BGG-Analysis Documentation}\end{center}
+
+\section{Requirements}
+\noindent In order to build the database you will need Python version 3.6.1 or later, 64-bit or higher. In order to search the database, you will need Python version 3.6.1 or later. Use as a library may or may not require a 64-bit version of Python, depending only on the size of the database in use.\skipline\\
+Python will install the following packages (using \code{pip}) as well as all of their dependencies in order to build or search the database:\\
+\-\qquad\begin{tabular}{l|c|c}
+\textbf{Package}&\textbf{Build}&\textbf{Search}\\\hline
+\href{https://pypi.python.org/pypi/requests}{\code{requests}}&\checkmark&\\
+\href{https://pypi.python.org/pypi/pandas}{\code{pandas}}&\checkmark&\checkmark\\
+\href{https://pypi.python.org/pypi/scikit-learn}{\code{scikit-learn}}&\checkmark&\checkmark\\
+\href{https://pypi.python.org/pypi/Unidecode}{\code{unidecode}}&&\checkmark\\
+\href{https://pypi.python.org/pypi/jsonschema}{\code{jsonschema}}&&\checkmark\\
+\href{https://pypi.python.org/pypi/multiset}{\code{multiset}}&&\checkmark
+\end{tabular}\skipline[.75]\\
+Please be aware that the \code{scikit-learn} package requires \href{https://pypi.python.org/pypi/scipy}{\code{scipy}}, which does not have a functioning wheel for the default Python installation on Windows. As such it is recommended that you use WinPython instead, which includes \code{scipy} be default.\skipline\\
+Running this code will also make appropriate use of packages \href{https://pypi.python.org/pypi/ujson}{\code{ujson}} and \href{https://pypi.python.org/pypi/tqdm}{\code{tqdm}} if they are installed, but they are not required.
+
+\section{Location}
+\noindent The project \code{bgg-analysis} in its current state can be found at \url{https://github.com/Jonah-Horowitz/bgg-analysis}.
+
+\section{Installation}
+\noindent To install, place the following files in the same folder:\\
+\-\qquad\begin{tabular}{l}
+\code{bgg\_prepare.py}\\
+\code{bgg\_search.py}\\
+\code{query\_schema.json}
+\end{tabular}\skipline[.75]\\
+If you already have a copy of the database, place the following two files in the above folder as well:\\
+\-\qquad\begin{tabular}{l}
+\code{boardgames-clean.sqlite}\\
+\code{ratings\_svd.pickle}
+\end{tabular}\skipline[.75]\\
+If you do not yet have a copy of the database or plan to build one yourself, place the following files in the above folder as well:\\
+\-\qquad\begin{tabular}{l}
+\code{bgg\_clean.py}\\
+\code{bgg\_collect.py}\\
+\code{bgg\_optimize.py}
+\end{tabular}
+
+\section{Building the Database}
+\noindent To build the database, run \code{bgg\_prepare.py} - make sure your machine has an active internet connection. This will likely take quite a while. If it is disrupted, there is likely a way to resume approximately where it left off, but the method of doing this is dependent upon which stage of data collection/cleaning it was in when it was disrupted.
+
+\section{Searching the Database}
+\noindent Searching the database can be done in two related ways.
+\begin{itemize}
+\item If you are running \code{bgg-analysis} as a stand-alone program, you will need to create a file named \code{input.json} in the appropriate format (see later in this section), then run \code{bgg\_search.py}.
+\item If you are using \code{bgg-analysis} as a Python library, you will need to call the function \code{bgg\_search.process\_query} with one argument. This argument can be either
+\begin{itemize}
+\item An appropriately formatted string,
+\item The filename of an appropriately formatted file, or
+\item An appropriately structured Python \code{dict} object.
+\end{itemize}
+\end{itemize}
+In either case, the results will be deposited into \code{query\_results.sqlite}.
+
+\subsection{Query Format}
+\noindent The input file (or string) must be in \href{http://www.json.org/}{JSON} format. It must consist of a single object with any or all of the following properties.
+
+\noindent\begin{longtable}{|l|l|P{.1\textwidth}|P{.55\textwidth}|}
+\hline\textbf{Property}&\textbf{Properties}\footnotemark[1]&\textbf{Type}&\textbf{Description}\\\hline\hline
+\multirow{3}{*}{\code{name}}&\code{require}&string&Name must be exactly this (case-insensitive).\\*\cline{2-4}
+&\code{contains}&string&Name must contain this string (case-insensitive).\\*\cline{2-4}
+&\code{regex}&string&Name must match this regular expression (case sensitive).\\\hline
+\multicolumn{2}{|l|}{\code{gameId}}&int or list of ints&gameId must be one of these.\\\hline
+\multirow{4}{*}{\code{description}}&\code{contains}&string&Description must contain this string (case-insensitive).\\*\cline{2-4}
+&\code{regex}&string&Description must match this regular expression (case sensitive).\\*\cline{2-4}
+&\code{query}&string&Results will be ordered in part by results of this query (case-insensitive, uses TF-IDF).\\*\cline{2-4}
+&\code{importance}&int&(See notes)\footnotemark[2]\\\hline
+\multirow{3}{*}{\code{image}}&\code{require}&boolean&Requires that the image URL be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{prefer}&boolean&Prefers that the image URL be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{7}{*}{\code{publicationYear}}&\code{exactly}&int&Game must be published in this year (or missing).\\*\cline{2-4}
+&\code{before}&int&Game must be published in or before this year (or missing).\\*\cline{2-4}
+&\code{after}&int&Game must be published in or after this year (or missing).\\*\cline{2-4}
+&\code{includeMissing}&boolean&Publication year must or must not be missing.\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``new'' or ``old'', if a number the closer the year of publication is to that number the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that the publication year be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{8}{*}{\code{players}}&\code{includes}&int&Must allow this number of players.\\*\cline{2-4}
+&\code{maxAtLeast}&int&Maximum number of players must be at least this.\\*\cline{2-4}
+&\code{minAtMost}&int&Minimum number of players must be at most this.\\*\cline{2-4}
+&\code{includeMinMissing}&boolean&Minimum number of players must be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{includeMaxMissing}&boolean&Maximum number of players must be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``high'' or ``low'', if a number the closer the number of players is to including that number the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that the number of players be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{7}{*}{\code{playTime}}&\code{atLeast}&number&Must take at least this long to play (in minutes).\\*\cline{2-4}
+&\code{atMost}&number&Must take at most this long to play (in minutes).\\*\cline{2-4}
+&\code{includeMinMissing}&boolean&Minimum play time must be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{includeMaxMissing}&boolean&Maximum play time must be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``high'' or ``low'', if a number the closer to the given play time the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that the play time be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{6}{*}{\code{minAge}}&\code{atLeast}&number&Minimum age must be at least this.\\*\cline{2-4}
+&\code{atMost}&number&Minimum age must be at most this.\\*\cline{2-4}
+&\code{includeMissing}&boolean&Minimum age must be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{prefer}&string or number&if a string, must be ``high'' or ``low'', if a number the closer the minimum age is to that number the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that minimum age be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{7}{*}{\code{ratings}\footnotemark[4]}&\code{minRated}&int&Number of people providing ratings must be at least this.\\*\cline{2-4}
+&\code{maxRated}&int&Number of people providing ratings must be at most this.\\*\cline{2-4}
+&\code{minRating}&number&Average rating must be at least this.\\*\cline{2-4}
+&\code{maxRating}&number&Average rating must be at most this.\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``high'' or ``low'', if a number the closer the average rating is to that number the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that the average rating be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{7}{*}{\code{weights}}&\code{minWeighted}&int&Number of people providing weights must be at least this.\\*\cline{2-4}
+&\code{maxWeighted}&int&Number of people providing weights must be at most this.\\*\cline{2-4}
+&\code{minWeight}&number&Average weight must be at least this.\\*\cline{2-4}
+&\code{maxWeight}&number&Average weight must be at most this.\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``high'' or ``low'', if a number the closer the average weight is to that number the better.\\*\cline{2-4}
+&\code{preferKnown}&boolean&Prefers that the average weight be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{4}{*}{\code{expansions}}&\code{minExpansions}&int&Number of expansions must be at least this.\\*\cline{2-4}
+&\code{maxExpansions}&int&Number of expansions must be at most this.\\*\cline{2-4}
+&\code{prefer}&string or number&If a string, must be ``high'' or ``low'', if a number the closer the number of expansions is to that number the better.\\*\cline{2-4}
+&\code{importance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{3}{*}{\textit{[Link Type]}\footnotemark[5]}&\code{require}&object&Object's properties are \textit{[Link Value]}: \textit{[boolean]}, where each such property's value requires that said property be present or absent.\footnotemark[3]\\*\cline{2-4}
+&\code{prefer}&object&Object's properties are \textit{[Link Value]}: \textit{[number]}, where each property's value is a relative weight placed on that property's presence (if positive) or absence (if negative).\\*\cline{2-4}
+&\code{totalImportance}&number&(See notes)\footnotemark[2]\\\hline
+\multirow{2}{*}{\code{myRatings}\footnotemark[4]}&\code{importance}&number&(See notes)\footnotemark[2]\\*\cline{2-4}
+&\textit{[gameId]}&number&For each \code{gameId} (as a string) included as a property, its value should be this user's 1 to 10 ranking of the associated game.\\\hline
+\multicolumn{2}{|l|}{\code{filename}}&string&If you wish the results of this query to be stored somewhere other than \code{query\_results.sqlite}, specify the filename here.\\\hline
+\end{longtable}
+\footnotetext[1]{Each property except for \code{gameId} and \code{filename} will have a value of type object, each of which must have at least one of the listed properties.}
+\footnotetext[2]{Importance numbers are relative to each other and are used as coefficients in the linear combination of the specified predictive ratings. All importances default to 1 if not specified.}
+\footnotetext[3]{When a property takes a boolean value, including \code{true} for that value means the associated condition \emph{must be or is preferred to be true}, including \code{false} for that value means that the associated condition \emph{must be or is preferred to be false}, and not including that property means that the associated condition \emph{is not checked}.}
+\footnotetext[4]{While the \code{ratings} property deals with the average ratings as an aggregate property, the \code{myRatings} property compares how this user rated specific games to how other users rated specific games and used Singular Value Decomposition to come up with predictions about this user's ratings.}
+\footnotetext[5]{There are nine acceptable link types which can be specified independently of each other. To find out what they are as well as what values they may take, please see the \code{links} table in the database.}
+
+\section{Query Results}
+\noindent The results of each query will be an \href{https://www.sqlite.org/}{SQLite} file with a single table consisting of games which meet the query's requirements. Each game will also include a predicted rating (in the \code{prediction} column of the table) which will be between 1 and 10 (inclusive).
+
+\label{LastPage}
+\end{document}

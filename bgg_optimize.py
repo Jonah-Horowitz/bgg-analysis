@@ -5,8 +5,21 @@ https://cambridgespark.com/content/tutorials/implementing-your-own-recommender-s
 
 import sqlite3
 import pandas as pd
-from tqdm import tqdm
-from sklearn.decomposition import TruncatedSVD
+
+try:
+	from tqdm import tqdm
+except ImportError:
+	def tqdm(i,*args,**kwds):
+		"""Placeholder identity function since package `tqdm` is not available."""
+		return i
+
+try:
+	from sklearn.decomposition import TruncatedSVD
+except ImportError:
+	import pip
+	pip.main(["install","sklearn"])
+	from sklearn.decomposition import TruncatedSVD
+
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
