@@ -260,7 +260,7 @@ def _filter_by_expansions(target, query=None):
 def _filter_by_links(target, linktype, query=None):
 	"""Filters by the given link type. If the query is None, returns the original dataframe."""
 	global _DB_LINKS
-	if (query is None) | ("require" not in query):
+	if (query is None) or ("require" not in query):
 		return target
 	by_lt = _DB_LINKS[_DB_LINKS.type==linktype]
 	for linkvalue in query["require"]:
@@ -424,7 +424,7 @@ def _prefer_by_minage(target, query=None):
 def _prefer_by_ratings(target, query=None):
 	"""Weighs by the given preferences on average rating. Defaults to treating higher-rated games as more desirable."""
 	global _DEFAULT_IMPORTANCE
-	if query==None or len(query)==0:
+	if (query is None) or (len(query)==0):
 		query={ "prefer": "high" }
 	wt = query.get("importance", _DEFAULT_IMPORTANCE["ratings"])
 	if "prefer" in query:
@@ -485,7 +485,7 @@ def _prefer_by_expansions(target, query=None):
 def _prefer_by_links(target, linktype, query=None):
 	"""Weighs by the given preferences regarding the specified link type."""
 	global _DEFAULT_IMPORTANCE, _DB_LINKS
-	if (query is None) | ("prefer" not in query):
+	if (query is None) or ("prefer" not in query):
 		return
 	wt = query.get("totalImportance", _DEFAULT_IMPORTANCE[linktype])
 	by_lt = _DB_LINKS[_DB_LINKS.type==linktype]
@@ -523,10 +523,10 @@ def _prefer_by_myratings(target, query=None):
 	game_averages = _DB_GAMES.set_index("gameId").averageRating
 	uz_matrix = uz_matrix.fillna(game_averages).subtract(uz_avg, axis=0)
 	uz_predict = pd.DataFrame(svd.inverse_transform(svd.transform(uz_matrix)), index=uz_matrix.index, columns=uz_matrix.columns)
-	uz_predict = us_predict.add(uz_avg, axis=0)
+	uz_predict = uz_predict.add(uz_avg, axis=0)
 	uz_predict[uz_predict<1] = 1
 	uz_predict[uz_predict>10] = 10
-	predictions = uz.transpose().reset_index().rename(columns={"index":"gameId", 0:"user_zero"})
+	predictions = uz_predict.transpose().reset_index().rename(columns={"index":"gameId", 0:"user_zero"})
 	target.loc[target.gameId.isin(predictions.index),"sumWeights"] += wt
 	temp_df = pd.merge(target, predictions, sort=False)
 	target.loc[:,"sumPredictions"] += wt*temp_df.loc[:,"user_zero"].fillna(0)
